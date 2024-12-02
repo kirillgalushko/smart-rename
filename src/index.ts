@@ -1,6 +1,7 @@
-import { ensureDir, readdir, pathExists } from 'fs-extra';
+import { ensureDir, readdir, copy } from 'fs-extra';
 import path from 'path';
 import log from 'log';
+import { clean, CleanOptions } from './clean';
 
 export const RESULT_DIR = 'rename_result';
 
@@ -93,11 +94,30 @@ export const prepareUniqFilenamesMap = (filenamesMap: Map<string, string>) => {
   });
 };
 
-export const rename = async (inputPath: string) => {
+export const copyFilesToResultDirectory = async (
+  filesMap: Map<string, string>,
+  resultDirPath: string
+) => {
+  filesMap.forEach(async (oldFilePath, newFilePath) => {
+    await copy(
+      oldFilePath,
+      path.resolve(resultDirPath, path.basename(newFilePath))
+    );
+  });
+};
+
+export const rename = async (inputPath: string, cleanOptions: CleanOptions) => {
   log.info(`Starting the renaming process for inputPath: ${inputPath}`);
 
   try {
-    await createResultDirectory(inputPath);
+    const resultDirPath = await createResultDirectory(inputPath);
+    const filesInDirectory = await getFilesInDirectory(inputPath);
+    const cleanFilenames = await getCleanedFilesMap(
+      filesInDirectory,
+      (fileName) => clean(fileName, cleanOptions)
+    );
+    prepareUniqFilenamesMap(cleanFilenames);
+    await copyFilesToResultDirectory(cleanFilenames, resultDirPath);
     log.info('Renaming process completed successfully');
   } catch (error) {
     log.error('Renaming process failed', error);
