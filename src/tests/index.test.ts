@@ -2,6 +2,7 @@ import { describe, it, expect, vi, Mock } from 'vitest';
 import {
   createResultDirectory,
   getFilesInDirectory,
+  getCleanedFilesMap,
   RESULT_DIR,
 } from '../index';
 import path from 'path';
@@ -43,5 +44,29 @@ describe('getFilesInDirectory', () => {
     (vi.mocked(fsExtra.readdir) as Mock).mockResolvedValue(mockFiles);
     const files = await getFilesInDirectory(dirPath);
     expect(files).toEqual([]);
+  });
+});
+
+describe('getCleanedFilesMap', () => {
+  it('should correctly return a map of cleaned filenames', () => {
+    const filePaths = [
+      '/dir/file1.txt',
+      '/dir/testfile2.JPG',
+      '/dir/file3test.PNG',
+    ].map((fp) => path.normalize(fp));
+
+    const expectedResult = new Map([
+      [filePaths[0], path.normalize('/dir/file1.txt')],
+      [filePaths[1], path.normalize('/dir/file2.JPG')],
+      [filePaths[2], path.normalize('/dir/file3.PNG')],
+    ]);
+
+    const clean = (filename: string) => {
+      return filename.replace('test', '');
+    };
+
+    const result = getCleanedFilesMap(filePaths, clean);
+
+    expect(result).toEqual(expectedResult);
   });
 });

@@ -1,4 +1,4 @@
-interface CleanOptions {
+export interface CleanOptions {
   blacklist: (string | RegExp)[];
   removeSpaces?: boolean;
 }
