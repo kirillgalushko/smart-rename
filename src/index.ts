@@ -1,5 +1,5 @@
 const rename = () => {
-  console.log('rename')
-}
+  console.log('rename');
+};
 
-export default rename
+export default rename;

@@ -5,7 +5,7 @@ import { rimraf } from 'rimraf';
 
 const execAsync = promisify(exec);
 
-const distPath = './dist'
+const distPath = './dist';
 
 async function clearDistFolder() {
   await rimraf(distPath);
@@ -23,7 +23,7 @@ async function buildJavaScript() {
     format: 'esm',
     minify: false,
     logLevel: 'info',
-    external: ['*.test.ts',],
+    external: ['*.test.ts'],
   });
   console.log('JavaScript build completed.');
 }
