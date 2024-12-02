@@ -23,7 +23,7 @@ async function buildJavaScript() {
     format: 'esm',
     minify: false,
     logLevel: 'info',
-    external: ['*.test.ts'],
+    external: ['*.test.ts', '*/tests'],
   });
   console.log('JavaScript build completed.');
 }

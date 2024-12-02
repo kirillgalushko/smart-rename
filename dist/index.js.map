@@ -1,7 +1,7 @@
 {
   "version": 3,
   "sources": ["../src/index.ts"],
-  "sourcesContent": ["const rename = () => {\r\n  console.log('rename')\r\n}\r\n\r\nexport default rename"],
+  "sourcesContent": ["const rename = () => {\n  console.log('rename');\n};\n\nexport default rename;\n"],
   "mappings": ";AAAA,IAAM,SAAS,MAAM;AACnB,UAAQ,IAAI,QAAQ;AACtB;AAEA,IAAO,cAAQ;",
   "names": []
 }
