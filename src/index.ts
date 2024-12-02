@@ -1,17 +1,19 @@
-import { ensureDir, readdir } from 'fs-extra';
-import cleanFilename, { type CleanOptions } from './clean';
+import { ensureDir, readdir, pathExists } from 'fs-extra';
 import path from 'path';
 import log from 'log';
 
 export const RESULT_DIR = 'rename_result';
 
-export const createResultDirectory = async (inputPath: string) => {
+export const createResultDirectory = async (
+  inputPath: string
+): Promise<string> => {
   const resultDirPath = path.join(inputPath, RESULT_DIR);
   log.info(`Attempting to create result directory: ${resultDirPath}`);
 
   try {
     await ensureDir(resultDirPath);
     log.info(`Result directory created successfully: ${resultDirPath}`);
+    return resultDirPath;
   } catch (error) {
     log.error(`Error creating result directory: ${resultDirPath}`, error);
     throw error;
@@ -56,6 +58,39 @@ export const getCleanedFilesMap = (
     log.error(`Error while creating a map of cleaned filenames`, error);
     throw error;
   }
+};
+
+export const getUniqueFilename = (
+  uniqNamesSet: Set<string>,
+  filePath: string
+) => {
+  log.info(`Attempting to generate uniq name for: ${filePath}`);
+  let uniqueName = filePath;
+  let counter = 2;
+
+  while (uniqNamesSet.has(uniqueName)) {
+    const ext = path.extname(filePath);
+    const dir = path.dirname(filePath);
+    const baseName = path.basename(filePath, ext);
+    uniqueName = path.join(dir, `${baseName} (${counter})${ext}`);
+    counter++;
+  }
+
+  log.info(`Uniq name for ${filePath} is ${uniqueName}`);
+  return uniqueName;
+};
+
+export const prepareUniqFilenamesMap = (filenamesMap: Map<string, string>) => {
+  log.info(`Prepare uniq filenames in map`);
+  const uniqFilenames = new Set<string>();
+  filenamesMap.forEach((filePath, key) => {
+    if (uniqFilenames.has(filePath)) {
+      const uniqFilename = getUniqueFilename(uniqFilenames, filePath);
+      uniqFilenames.add(uniqFilename);
+      filenamesMap.set(key, uniqFilename);
+    }
+    uniqFilenames.add(filePath);
+  });
 };
 
 export const rename = async (inputPath: string) => {
