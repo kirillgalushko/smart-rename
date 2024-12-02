@@ -20,12 +20,14 @@ export const createResultDirectory = async (inputPath: string) => {
 export const getFilesInDirectory = async (
   dirPath: string
 ): Promise<string[]> => {
+  log.info(`Attempting to get files in directory: ${dirPath}`);
   try {
     const files = await readdir(dirPath, { withFileTypes: true });
     const filePaths = files
       .filter((file) => file.isFile())
       .map((file) => path.join(dirPath, file.name));
 
+    log.info(`Files found in directory: ${filePaths.length}`);
     return filePaths;
   } catch (error) {
     log.error(`Error reading directory: ${dirPath}`, error);
