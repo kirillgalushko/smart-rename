@@ -1,13 +1,21 @@
 import { build } from 'esbuild';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { rimraf } from 'rimraf';
 
 const execAsync = promisify(exec);
+
+const distPath = './dist'
+
+async function clearDistFolder() {
+  await rimraf(distPath);
+  console.log('Output folder cleaned.');
+}
 
 async function buildJavaScript() {
   await build({
     entryPoints: ['./src/index.ts'],
-    outfile: './dist/index.js',
+    outfile: distPath + '/index.js',
     bundle: true,
     platform: 'node',
     target: 'es2022',
@@ -15,6 +23,7 @@ async function buildJavaScript() {
     format: 'esm',
     minify: false,
     logLevel: 'info',
+    external: ['*.test.ts',],
   });
   console.log('JavaScript build completed.');
 }
@@ -27,6 +36,7 @@ async function generateTypeDeclarations() {
 async function buildLibrary() {
   try {
     console.log('Starting build...');
+    await clearDistFolder();
     await buildJavaScript();
     await generateTypeDeclarations();
     console.log('Build completed successfully.');
