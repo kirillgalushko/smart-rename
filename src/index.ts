@@ -1,4 +1,4 @@
-import { ensureDir } from 'fs-extra';
+import { ensureDir, readdir } from 'fs-extra';
 import path from 'path';
 import log from 'log';
 
@@ -13,6 +13,22 @@ export const createResultDirectory = async (inputPath: string) => {
     log.info(`Result directory created successfully: ${resultDirPath}`);
   } catch (error) {
     log.error(`Error creating result directory: ${resultDirPath}`, error);
+    throw error;
+  }
+};
+
+export const getFilesInDirectory = async (
+  dirPath: string
+): Promise<string[]> => {
+  try {
+    const files = await readdir(dirPath, { withFileTypes: true });
+    const filePaths = files
+      .filter((file) => file.isFile())
+      .map((file) => path.join(dirPath, file.name));
+
+    return filePaths;
+  } catch (error) {
+    log.error(`Error reading directory: ${dirPath}`, error);
     throw error;
   }
 };
