@@ -7,7 +7,11 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "declaration": true,
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "paths": {
+      "log": ["src/log"]
+    }
   },
   "include": ["src/**/*"],
   "exclude": ["src/**/*.test.ts", "src/tests/**"]
