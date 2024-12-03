@@ -50,7 +50,7 @@ export const getRenamedFilesMap = (
   filePaths: string[],
   transform: (input: string) => string
 ): Map<string, string> => {
-  log.info(`Attempting to create a map of transformed filenames`);
+  log.info(`Attempting to create a map of renamed filenames`);
   try {
     const transformedPaths = new Map<string, string>();
     for (const oldPath of filePaths) {
@@ -63,7 +63,7 @@ export const getRenamedFilesMap = (
     log.info(`Renamed filenames map size: ${transformedPaths.size}`);
     return transformedPaths;
   } catch (error) {
-    log.error(`Error while creating a map of transformed filenames`, error);
+    log.error(`Error while creating a map of renamed filenames`, error);
     throw error;
   }
 };
