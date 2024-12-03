@@ -6,7 +6,7 @@ import {
   generateUniqueFilename,
   ensureUniqueFilenamesMap,
   OUTPUT_DIR_NAME,
-} from '../index';
+} from '../src/index';
 import path from 'path';
 import * as fsExtra from 'fs-extra';
 

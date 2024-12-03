@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import clean from '../clean';
+import clean from '../src/clean';
 
 describe('clean', () => {
   it('should remove exact string matches from input', () => {

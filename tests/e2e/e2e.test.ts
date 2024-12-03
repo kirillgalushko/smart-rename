@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterAll } from 'vitest';
 import fs from 'fs-extra';
 import path from 'path';
-import { smartRename } from '../../index';
+import { smartRename } from '../../src/index';
 
 const TEST_RESULT_DIR_NAME = 'test_result';
 
