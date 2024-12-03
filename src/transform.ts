@@ -1,10 +1,10 @@
 export interface TransformOptions {
-  patternsToRemove: (string | RegExp)[];
+  patternsToRemove?: (string | RegExp)[];
   removeSpaces?: boolean;
 }
 
 export const transform = (input: string, options: TransformOptions) => {
-  const { patternsToRemove, removeSpaces } = options;
+  const { patternsToRemove = [], removeSpaces } = options;
 
   let result = input;
 

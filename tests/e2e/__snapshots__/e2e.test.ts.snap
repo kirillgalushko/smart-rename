@@ -1,5 +1,59 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`e2e > should correctly add custom counter 1`] = `
+[
+  "digital-ocean.svg",
+  "download",
+  "fatal-error-2.mp3",
+  "gameloft.svg",
+  "intel.svg",
+  "intel.txt",
+  "light-switch.mp3",
+  "login.txt",
+  "mattermost.svg",
+  "mattermost__2.svg",
+  "mouse-click-computer.txt",
+  "notification-message-light-interface-sound-2.mp3",
+  "pleasant-interface-alert-2-message-hint-ding-message-hint-ding.mp3",
+]
+`;
+
+exports[`e2e > should correctly transform filenames 1`] = `
+[
+  "prefix-audioblocks-fatal-error-2_SY8xTgf8ADU_NWM-postfix.mp3",
+  "prefix-audioblocks-notification-message-light-interface-sound-2_SFIlEpWL0vU_NWM-postfix.mp3",
+  "prefix-audioblocks-pleasant-interface-alert-2-message-hint-ding-message-hint-ding_Ht4sRWUAvU_NWM-postfix.mp3",
+  "prefix-digital-ocean-svgrepo-com (1)-postfix.svg",
+  "prefix-download-id4knLKYsV-1732567273343-postfix",
+  "prefix-gameloft-postfix.svg",
+  "prefix-intel (1)-postfix.txt",
+  "prefix-intel_- logo-1000x660-postfix.svg",
+  "prefix-light-switch_NWM-postfix.mp3",
+  "prefix-login_Msd12dsRG3-postfix.txt",
+  "prefix-mattermost-icon-svgrepo-com-postfix.svg",
+  "prefix-mattermost-svgrepo-com-postfix.svg",
+  "prefix-mouse-click-computer_Gkjr_nNu_NWM-postfix.txt",
+]
+`;
+
+exports[`e2e > should correctly transform filenames after removing patterns 1`] = `
+[
+  "prefix-digital-ocean-postfix.svg",
+  "prefix-download-postfix",
+  "prefix-fatal-error-2-postfix.mp3",
+  "prefix-gameloft-postfix.svg",
+  "prefix-intel-postfix.svg",
+  "prefix-intel-postfix.txt",
+  "prefix-light-switch-postfix.mp3",
+  "prefix-login-postfix.txt",
+  "prefix-mattermost-postfix (2).svg",
+  "prefix-mattermost-postfix.svg",
+  "prefix-mouse-click-computer-postfix.txt",
+  "prefix-notification-message-light-interface-sound-2-postfix.mp3",
+  "prefix-pleasant-interface-alert-2-message-hint-ding-message-hint-ding-postfix.mp3",
+]
+`;
+
 exports[`e2e > should execute basic functionality 1`] = `
 [
   "digital-ocean.svg",

@@ -73,7 +73,7 @@ describe('getRenamedFilesMap', () => {
       [filePaths[2], path.normalize('/dir/file3.PNG')],
     ]);
 
-    const transform = (filename: string) => {
+    const transform = (filename) => {
       return filename.replace('test', '');
     };
 

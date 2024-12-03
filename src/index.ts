@@ -48,16 +48,16 @@ export const getFilesInDirectory = async (
 
 export const getRenamedFilesMap = (
   filePaths: string[],
-  transform: (input: string) => string
+  transform: (fileName: string) => string
 ): Map<string, string> => {
   log.info(`Attempting to create a map of renamed filenames`);
   try {
     const transformedPaths = new Map<string, string>();
     for (const oldPath of filePaths) {
-      const extname = path.extname(oldPath);
-      const baseName = path.basename(oldPath, extname);
+      const extension = path.extname(oldPath);
+      const baseName = path.basename(oldPath, extension);
       const newBaseName = transform(baseName);
-      const newPath = path.join(path.dirname(oldPath), newBaseName + extname);
+      const newPath = path.join(path.dirname(oldPath), newBaseName + extension);
       transformedPaths.set(oldPath, newPath);
     }
     log.info(`Renamed filenames map size: ${transformedPaths.size}`);
@@ -137,16 +137,24 @@ export const moveRenameResultToInputDirectory = async (
   }
 };
 
+export type TransformFn = (filename: string) => string;
+
 export interface SmartRenameOptions extends TransformOptions {
   outputPath?: string;
   formatCounter?: FormatCounterFn;
+  transform?: TransformFn;
 }
 
 export const smartRename = async (
   inputPath: string,
   options: SmartRenameOptions
 ) => {
-  const { outputPath, formatCounter, ...transformOptions } = options;
+  const {
+    outputPath,
+    formatCounter,
+    transform: customTransform,
+    ...transformOptions
+  } = options;
   log.info(`Starting the renaming process for inputPath: ${inputPath}`);
 
   try {
@@ -157,7 +165,13 @@ export const smartRename = async (
     const filesInDirectory = await getFilesInDirectory(inputPath);
     const transformFilenames = await getRenamedFilesMap(
       filesInDirectory,
-      (fileName) => transform(fileName, transformOptions)
+      (fileName) => {
+        let transformResult = transform(fileName, transformOptions);
+        if (customTransform) {
+          transformResult = customTransform(transformResult);
+        }
+        return transformResult;
+      }
     );
     ensureUniqueFilenamesMap(transformFilenames, formatCounter);
     await copyRenamedFilesToOutputDirectory(transformFilenames, outputDirPath);
