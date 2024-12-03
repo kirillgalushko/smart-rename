@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, Mock } from 'vitest';
 import {
-  createResultDirectory,
+  createOutputDirectory,
   getFilesInDirectory,
-  getCleanedFilesMap,
-  getUniqueFilename,
-  prepareUniqFilenamesMap,
-  RESULT_DIR,
+  getRenamedFilesMap,
+  generateUniqueFilename,
+  ensureUniqueFilenamesMap,
+  OUTPUT_DIR_NAME,
 } from '../index';
 import path from 'path';
 import * as fsExtra from 'fs-extra';
@@ -20,17 +20,17 @@ const normalizePaths = (paths: string[]) => {
   return paths.map((p) => path.normalize(p));
 };
 
-describe('createResultDirectory', () => {
+describe('createOutputDirectory', () => {
   it('should create result directory with the correct path', async () => {
     const inputPath = '/path/to/dir';
-    const expectedResultDir = path.join(inputPath, '../', RESULT_DIR);
-    await createResultDirectory(inputPath);
+    const expectedResultDir = path.join(inputPath, '../', OUTPUT_DIR_NAME);
+    await createOutputDirectory(inputPath);
     expect(fsExtra.ensureDir).toHaveBeenCalledWith(expectedResultDir);
   });
   it('should return a path to created directory', async () => {
     const inputPath = '/path/to/dir';
-    const expectedResultDir = path.join(inputPath, '../', RESULT_DIR);
-    const createdDir = await createResultDirectory(inputPath);
+    const expectedResultDir = path.join(inputPath, '../', OUTPUT_DIR_NAME);
+    const createdDir = await createOutputDirectory(inputPath);
     expect(createdDir).toMatch(expectedResultDir);
   });
 });
@@ -60,7 +60,7 @@ describe('getFilesInDirectory', () => {
   });
 });
 
-describe('getCleanedFilesMap', () => {
+describe('getRenamedFilesMap', () => {
   it('should correctly return a map of cleaned filenames', () => {
     const filePaths = normalizePaths([
       '/dir/file1.txt',
@@ -78,24 +78,24 @@ describe('getCleanedFilesMap', () => {
       return filename.replace('test', '');
     };
 
-    const result = getCleanedFilesMap(filePaths, clean);
+    const result = getRenamedFilesMap(filePaths, clean);
 
     expect(result).toEqual(expectedResult);
   });
 });
 
-describe('getUniqueFilename', () => {
+describe('generateUniqueFilename', () => {
   it('should return the same path if it is unique', () => {
     const uniqNamesSet = new Set<string>(['/dir/file1.txt']);
     const filePath = '/dir/file2.txt';
-    const result = getUniqueFilename(uniqNamesSet, filePath);
+    const result = generateUniqueFilename(uniqNamesSet, filePath);
     expect(path.normalize(result)).toBe(path.normalize(filePath));
   });
 
   it('should return a path with a counter if the file already exists', () => {
     const uniqNamesSet = new Set<string>(['/dir/file.txt']);
     const filePath = '/dir/file.txt';
-    const result = getUniqueFilename(uniqNamesSet, filePath);
+    const result = generateUniqueFilename(uniqNamesSet, filePath);
     expect(result).toBe(path.normalize('/dir/file (2).txt'));
   });
 
@@ -108,19 +108,19 @@ describe('getUniqueFilename', () => {
       ])
     );
     const filePath = path.normalize('/dir/file.txt');
-    const result = getUniqueFilename(uniqNamesSet, filePath);
+    const result = generateUniqueFilename(uniqNamesSet, filePath);
     expect(result).toBe(path.normalize('/dir/file (4).txt'));
   });
 });
 
-describe('prepareUniqFilenamesMap', () => {
+describe('ensureUniqueFilenamesMap', () => {
   it('should not change unique filenames', () => {
     const filenamesMap = new Map<string, string>([
       ['/dir/file1.txt', '/dir/file1.txt'],
       ['/dir/file2.txt', '/dir/file2.txt'],
     ]);
 
-    prepareUniqFilenamesMap(filenamesMap);
+    ensureUniqueFilenamesMap(filenamesMap);
 
     expect(Array.from(filenamesMap.entries())).toEqual([
       ['/dir/file1.txt', '/dir/file1.txt'],
@@ -134,7 +134,7 @@ describe('prepareUniqFilenamesMap', () => {
       ['/dir/file2.txt', '/dir/file.txt'],
     ]);
 
-    prepareUniqFilenamesMap(filenamesMap);
+    ensureUniqueFilenamesMap(filenamesMap);
 
     expect(Array.from(filenamesMap.entries())).toEqual([
       ['/dir/file1.txt', '/dir/file.txt'],
@@ -149,7 +149,7 @@ describe('prepareUniqFilenamesMap', () => {
       ['/dir/file3.txt', '/dir/file1.txt'],
     ]);
 
-    prepareUniqFilenamesMap(filenamesMap);
+    ensureUniqueFilenamesMap(filenamesMap);
 
     expect(Array.from(filenamesMap.entries())).toEqual([
       ['/dir/file1.txt', '/dir/file1.txt'],
