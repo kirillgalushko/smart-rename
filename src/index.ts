@@ -1,4 +1,4 @@
-import { ensureDir, readdir, copy } from 'fs-extra';
+import { ensureDir, readdir, copy, rename, remove } from 'fs-extra';
 import path from 'path';
 import log from 'log';
 import { clean, CleanOptions } from './clean';
@@ -8,7 +8,7 @@ export const RESULT_DIR = 'rename_result';
 export const createResultDirectory = async (
   inputPath: string
 ): Promise<string> => {
-  const resultDirPath = path.join(inputPath, RESULT_DIR);
+  const resultDirPath = path.join(inputPath, '../', RESULT_DIR);
   log.info(`Attempting to create result directory: ${resultDirPath}`);
 
   try {
@@ -83,30 +83,63 @@ export const getUniqueFilename = (
 
 export const prepareUniqFilenamesMap = (filenamesMap: Map<string, string>) => {
   log.info(`Prepare uniq filenames in map`);
-  const uniqFilenames = new Set<string>();
-  filenamesMap.forEach((filePath, key) => {
-    if (uniqFilenames.has(filePath)) {
-      const uniqFilename = getUniqueFilename(uniqFilenames, filePath);
-      uniqFilenames.add(uniqFilename);
-      filenamesMap.set(key, uniqFilename);
-    }
-    uniqFilenames.add(filePath);
-  });
+  try {
+    const uniqFilenames = new Set<string>();
+    filenamesMap.forEach((filePath, key) => {
+      if (uniqFilenames.has(filePath)) {
+        const uniqFilename = getUniqueFilename(uniqFilenames, filePath);
+        uniqFilenames.add(uniqFilename);
+        filenamesMap.set(key, uniqFilename);
+      }
+      uniqFilenames.add(filePath);
+    });
+    log.info(`Preparing uniq filenames finished`);
+  } catch (error) {
+    log.error('Error during preparing of uniq names:', error);
+    throw error;
+  }
 };
 
 export const copyFilesToResultDirectory = async (
   filesMap: Map<string, string>,
   resultDirPath: string
 ) => {
-  filesMap.forEach(async (oldFilePath, newFilePath) => {
-    await copy(
-      oldFilePath,
-      path.resolve(resultDirPath, path.basename(newFilePath))
-    );
-  });
+  log.info(
+    `Starting copy process of renamed files to result dir: ${resultDirPath}`
+  );
+  try {
+    for (const [oldFilePath, newFilePath] of filesMap) {
+      const newPath = path.resolve(resultDirPath, path.basename(newFilePath));
+      log.info(`Attemt to copy ${oldFilePath} to ${newPath}`);
+      await copy(oldFilePath, newPath);
+      log.info(`Successful copy of ${oldFilePath} to ${newFilePath}`);
+    }
+    log.info(`Finished copy process to result dir: ${resultDirPath}`);
+  } catch (error) {
+    log.error('Moving results to input directory failed:', error);
+    throw error;
+  }
 };
 
-export const rename = async (inputPath: string, cleanOptions: CleanOptions) => {
+export const moveResultToInputDirectory = async (
+  inputPath: string,
+  resultDirPath: string
+) => {
+  try {
+    log.info(`Cleaning input path: ${inputPath}`);
+    await remove(inputPath);
+    log.info(`Rename result directory ${resultDirPath} to ${inputPath}`);
+    await rename(resultDirPath, inputPath);
+  } catch (error) {
+    log.error('Moving results to input directory failed:', error);
+    throw error;
+  }
+};
+
+export const smartRename = async (
+  inputPath: string,
+  cleanOptions: CleanOptions
+) => {
   log.info(`Starting the renaming process for inputPath: ${inputPath}`);
 
   try {
@@ -118,8 +151,10 @@ export const rename = async (inputPath: string, cleanOptions: CleanOptions) => {
     );
     prepareUniqFilenamesMap(cleanFilenames);
     await copyFilesToResultDirectory(cleanFilenames, resultDirPath);
+    await moveResultToInputDirectory(inputPath, resultDirPath);
     log.info('Renaming process completed successfully');
   } catch (error) {
     log.error('Renaming process failed', error);
+    throw error;
   }
 };
