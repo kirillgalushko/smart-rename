@@ -80,4 +80,17 @@ describe('e2e', () => {
     const resultFiles = await fs.readdir(testResultDir);
     expect(resultFiles).toMatchSnapshot();
   });
+
+  it('should correctly handle multiple run', async () => {
+    const run = async () =>
+      smartRename(testResultDir, {
+        patternsToRemove,
+        removeSpaces: true,
+      });
+    await run();
+    await run();
+    await run();
+    const resultFiles = await fs.readdir(testResultDir);
+    expect(resultFiles).toMatchSnapshot();
+  });
 });

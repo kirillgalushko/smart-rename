@@ -18,6 +18,24 @@ exports[`e2e > should correctly add custom counter 1`] = `
 ]
 `;
 
+exports[`e2e > should correctly handle multiple run 1`] = `
+[
+  "digital-ocean.svg",
+  "download",
+  "fatal-error-2.mp3",
+  "gameloft.svg",
+  "intel.svg",
+  "intel.txt",
+  "light-switch.mp3",
+  "login.txt",
+  "mattermost (2).svg",
+  "mattermost.svg",
+  "mouse-click-computer.txt",
+  "notification-message-light-interface-sound-2.mp3",
+  "pleasant-interface-alert-2-message-hint-ding-message-hint-ding.mp3",
+]
+`;
+
 exports[`e2e > should correctly transform filenames 1`] = `
 [
   "prefix-audioblocks-fatal-error-2_SY8xTgf8ADU_NWM-postfix.mp3",
