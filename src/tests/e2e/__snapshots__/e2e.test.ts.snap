@@ -2,15 +2,18 @@
 
 exports[`e2e > should execute basic functionality 1`] = `
 [
-  "audioblocks-fatal-error-2.mp3",
   "digital-ocean.svg",
   "download",
+  "fatal-error-2.mp3",
   "gameloft.svg",
   "intel.svg",
   "intel.txt",
+  "light-switch.mp3",
   "login.txt",
   "mattermost (2).svg",
   "mattermost.svg",
   "mouse-click-computer.txt",
+  "notification-message-light-interface-sound-2.mp3",
+  "pleasant-interface-alert-2-message-hint-ding-message-hint-ding.mp3",
 ]
 `;

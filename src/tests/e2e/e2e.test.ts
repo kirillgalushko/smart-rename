@@ -33,6 +33,7 @@ describe('e2e', () => {
         /_.*/g,
         /id[^\s]*/g,
         /^-|-$/g,
+        /audioblocks-/g,
       ],
       removeSpaces: true,
     });
