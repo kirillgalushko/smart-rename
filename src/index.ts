@@ -2,6 +2,11 @@ import { ensureDir, readdir, copy, rename, remove } from 'fs-extra';
 import path from 'path';
 import log from 'log';
 import { clean, CleanOptions } from './clean';
+import {
+  defaultFormatCounter,
+  FormatCounterFn,
+  generateUniqueName,
+} from 'src/generateUniqueName';
 
 export const OUTPUT_DIR_NAME = 'temp_rename_result';
 
@@ -63,37 +68,31 @@ export const getRenamedFilesMap = (
   }
 };
 
-export const generateUniqueFilename = (
-  uniqNamesSet: Set<string>,
-  filePath: string
+export const ensureUniqueFilenamesMap = (
+  filenamesMap: Map<string, string>,
+  formatCounter: FormatCounterFn = defaultFormatCounter
 ) => {
-  log.info(`Attempting to generate uniq name for: ${filePath}`);
-  let uniqueName = filePath;
-  let counter = 2;
-
-  while (uniqNamesSet.has(uniqueName)) {
-    const ext = path.extname(filePath);
-    const dir = path.dirname(filePath);
-    const baseName = path.basename(filePath, ext);
-    uniqueName = path.join(dir, `${baseName} (${counter})${ext}`);
-    counter++;
-  }
-
-  log.info(`Uniq name for ${filePath} is ${uniqueName}`);
-  return uniqueName;
-};
-
-export const ensureUniqueFilenamesMap = (filenamesMap: Map<string, string>) => {
   log.info(`Prepare uniq filenames in map`);
   try {
-    const uniqFilenames = new Set<string>();
+    const uniqFileNames = new Set<string>();
     filenamesMap.forEach((filePath, key) => {
-      if (uniqFilenames.has(filePath)) {
-        const uniqFilename = generateUniqueFilename(uniqFilenames, filePath);
-        uniqFilenames.add(uniqFilename);
-        filenamesMap.set(key, uniqFilename);
+      const dir = path.dirname(filePath);
+      const fileName = path.basename(filePath);
+      if (uniqFileNames.has(fileName)) {
+        const uniqueFileName = generateUniqueName(
+          fileName,
+          uniqFileNames,
+          (nameToFormat, counter) => {
+            const ext = path.extname(nameToFormat);
+            const baseName = path.basename(filePath, ext);
+            return formatCounter(baseName, counter) + ext;
+          }
+        );
+        const uniqueFilePath = path.join(dir, uniqueFileName);
+        uniqFileNames.add(uniqueFileName);
+        filenamesMap.set(key, uniqueFilePath);
       }
-      uniqFilenames.add(filePath);
+      uniqFileNames.add(fileName);
     });
     log.info(`Preparing uniq filenames finished`);
   } catch (error) {
@@ -140,13 +139,14 @@ export const moveRenameResultToInputDirectory = async (
 
 export interface SmartRenameOptions extends CleanOptions {
   outputPath?: string;
+  formatCounter?: FormatCounterFn;
 }
 
 export const smartRename = async (
   inputPath: string,
   options: SmartRenameOptions
 ) => {
-  const { outputPath, ...cleanOptions } = options;
+  const { outputPath, formatCounter, ...cleanOptions } = options;
   log.info(`Starting the renaming process for inputPath: ${inputPath}`);
 
   try {
@@ -159,7 +159,7 @@ export const smartRename = async (
       filesInDirectory,
       (fileName) => clean(fileName, cleanOptions)
     );
-    ensureUniqueFilenamesMap(cleanFilenames);
+    ensureUniqueFilenamesMap(cleanFilenames, formatCounter);
     await copyRenamedFilesToOutputDirectory(cleanFilenames, outputDirPath);
     if (!options.outputPath) {
       await moveRenameResultToInputDirectory(inputPath, outputDirPath);

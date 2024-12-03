@@ -3,7 +3,6 @@ import {
   createOutputDirectory,
   getFilesInDirectory,
   getRenamedFilesMap,
-  generateUniqueFilename,
   ensureUniqueFilenamesMap,
   OUTPUT_DIR_NAME,
 } from '../src/index';
@@ -81,35 +80,6 @@ describe('getRenamedFilesMap', () => {
     const result = getRenamedFilesMap(filePaths, clean);
 
     expect(result).toEqual(expectedResult);
-  });
-});
-
-describe('generateUniqueFilename', () => {
-  it('should return the same path if it is unique', () => {
-    const uniqNamesSet = new Set<string>(['/dir/file1.txt']);
-    const filePath = '/dir/file2.txt';
-    const result = generateUniqueFilename(uniqNamesSet, filePath);
-    expect(path.normalize(result)).toBe(path.normalize(filePath));
-  });
-
-  it('should return a path with a counter if the file already exists', () => {
-    const uniqNamesSet = new Set<string>(['/dir/file.txt']);
-    const filePath = '/dir/file.txt';
-    const result = generateUniqueFilename(uniqNamesSet, filePath);
-    expect(result).toBe(path.normalize('/dir/file (2).txt'));
-  });
-
-  it('should increment the counter if multiple files with the same name exist', () => {
-    const uniqNamesSet = new Set<string>(
-      normalizePaths([
-        '/dir/file.txt',
-        '/dir/file (2).txt',
-        '/dir/file (3).txt',
-      ])
-    );
-    const filePath = path.normalize('/dir/file.txt');
-    const result = generateUniqueFilename(uniqNamesSet, filePath);
-    expect(result).toBe(path.normalize('/dir/file (4).txt'));
   });
 });
 
