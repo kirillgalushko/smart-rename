@@ -22,7 +22,7 @@ describe('e2e', () => {
   it('should execute basic functionality', async () => {
     console.log(testResultDir);
     await smartRename(testResultDir, {
-      blacklist: [
+      patternsToRemove: [
         /-svgrepo-com/g,
         /-logo/g,
         /-color/g,

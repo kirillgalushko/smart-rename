@@ -60,7 +60,7 @@ describe('getFilesInDirectory', () => {
 });
 
 describe('getRenamedFilesMap', () => {
-  it('should correctly return a map of cleaned filenames', () => {
+  it('should correctly return a map of transformed filenames', () => {
     const filePaths = normalizePaths([
       '/dir/file1.txt',
       '/dir/testfile2.JPG',
@@ -73,11 +73,11 @@ describe('getRenamedFilesMap', () => {
       [filePaths[2], path.normalize('/dir/file3.PNG')],
     ]);
 
-    const clean = (filename: string) => {
+    const transform = (filename: string) => {
       return filename.replace('test', '');
     };
 
-    const result = getRenamedFilesMap(filePaths, clean);
+    const result = getRenamedFilesMap(filePaths, transform);
 
     expect(result).toEqual(expectedResult);
   });

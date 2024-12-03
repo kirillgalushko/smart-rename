@@ -1,7 +1,7 @@
-import { ensureDir, readdir, copy, rename, remove } from 'fs-extra';
+import * as fs from 'fs-extra';
 import path from 'path';
 import log from 'log';
-import { clean, CleanOptions } from './clean';
+import { transform, TransformOptions } from './transform';
 import {
   defaultFormatCounter,
   FormatCounterFn,
@@ -19,7 +19,7 @@ export const createOutputDirectory = async (
   log.info(`Attempting to create result directory: ${outputDirPath}`);
 
   try {
-    await ensureDir(outputDirPath);
+    await fs.ensureDir(outputDirPath);
     log.info(`Result directory created successfully: ${outputDirPath}`);
     return outputDirPath;
   } catch (error) {
@@ -33,7 +33,7 @@ export const getFilesInDirectory = async (
 ): Promise<string[]> => {
   log.info(`Attempting to get files in directory: ${dirPath}`);
   try {
-    const files = await readdir(dirPath, { withFileTypes: true });
+    const files = await fs.readdir(dirPath, { withFileTypes: true });
     const filePaths = files
       .filter((file) => file.isFile())
       .map((file) => path.join(dirPath, file.name));
@@ -48,22 +48,22 @@ export const getFilesInDirectory = async (
 
 export const getRenamedFilesMap = (
   filePaths: string[],
-  clean: (input: string) => string
+  transform: (input: string) => string
 ): Map<string, string> => {
-  log.info(`Attempting to create a map of cleaned filenames`);
+  log.info(`Attempting to create a map of transformed filenames`);
   try {
-    const cleanedPaths = new Map<string, string>();
+    const transformedPaths = new Map<string, string>();
     for (const oldPath of filePaths) {
       const extname = path.extname(oldPath);
       const baseName = path.basename(oldPath, extname);
-      const newBaseName = clean(baseName);
+      const newBaseName = transform(baseName);
       const newPath = path.join(path.dirname(oldPath), newBaseName + extname);
-      cleanedPaths.set(oldPath, newPath);
+      transformedPaths.set(oldPath, newPath);
     }
-    log.info(`Cleaned filenames map size: ${cleanedPaths.size}`);
-    return cleanedPaths;
+    log.info(`Renamed filenames map size: ${transformedPaths.size}`);
+    return transformedPaths;
   } catch (error) {
-    log.error(`Error while creating a map of cleaned filenames`, error);
+    log.error(`Error while creating a map of transformed filenames`, error);
     throw error;
   }
 };
@@ -112,7 +112,7 @@ export const copyRenamedFilesToOutputDirectory = async (
     for (const [oldFilePath, newFilePath] of filesMap) {
       const newPath = path.resolve(outputDirPath, path.basename(newFilePath));
       log.info(`Attemt to copy ${oldFilePath} to ${newPath}`);
-      await copy(oldFilePath, newPath);
+      await fs.copy(oldFilePath, newPath);
       log.info(`Successful copy of ${oldFilePath} to ${newFilePath}`);
     }
     log.info(`Finished copy process to result dir: ${outputDirPath}`);
@@ -128,16 +128,16 @@ export const moveRenameResultToInputDirectory = async (
 ) => {
   try {
     log.info(`Cleaning input path: ${inputPath}`);
-    await remove(inputPath);
+    await fs.remove(inputPath);
     log.info(`Rename result directory ${outputDirPath} to ${inputPath}`);
-    await rename(outputDirPath, inputPath);
+    await fs.rename(outputDirPath, inputPath);
   } catch (error) {
     log.error('Moving results to input directory failed:', error);
     throw error;
   }
 };
 
-export interface SmartRenameOptions extends CleanOptions {
+export interface SmartRenameOptions extends TransformOptions {
   outputPath?: string;
   formatCounter?: FormatCounterFn;
 }
@@ -146,7 +146,7 @@ export const smartRename = async (
   inputPath: string,
   options: SmartRenameOptions
 ) => {
-  const { outputPath, formatCounter, ...cleanOptions } = options;
+  const { outputPath, formatCounter, ...transformOptions } = options;
   log.info(`Starting the renaming process for inputPath: ${inputPath}`);
 
   try {
@@ -155,12 +155,12 @@ export const smartRename = async (
       options.outputPath
     );
     const filesInDirectory = await getFilesInDirectory(inputPath);
-    const cleanFilenames = await getRenamedFilesMap(
+    const transformFilenames = await getRenamedFilesMap(
       filesInDirectory,
-      (fileName) => clean(fileName, cleanOptions)
+      (fileName) => transform(fileName, transformOptions)
     );
-    ensureUniqueFilenamesMap(cleanFilenames, formatCounter);
-    await copyRenamedFilesToOutputDirectory(cleanFilenames, outputDirPath);
+    ensureUniqueFilenamesMap(transformFilenames, formatCounter);
+    await copyRenamedFilesToOutputDirectory(transformFilenames, outputDirPath);
     if (!options.outputPath) {
       await moveRenameResultToInputDirectory(inputPath, outputDirPath);
     }
