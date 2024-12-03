@@ -1,0 +1,16 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`e2e > should execute basic functionality 1`] = `
+[
+  "audioblocks-fatal-error-2.mp3",
+  "digital-ocean.svg",
+  "download",
+  "gameloft.svg",
+  "intel.svg",
+  "intel.txt",
+  "login.txt",
+  "mattermost (2).svg",
+  "mattermost.svg",
+  "mouse-click-computer.txt",
+]
+`;

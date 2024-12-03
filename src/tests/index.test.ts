@@ -23,13 +23,13 @@ const normalizePaths = (paths: string[]) => {
 describe('createResultDirectory', () => {
   it('should create result directory with the correct path', async () => {
     const inputPath = '/path/to/dir';
-    const expectedResultDir = path.join(inputPath, RESULT_DIR);
+    const expectedResultDir = path.join(inputPath, '../', RESULT_DIR);
     await createResultDirectory(inputPath);
     expect(fsExtra.ensureDir).toHaveBeenCalledWith(expectedResultDir);
   });
   it('should return a path to created directory', async () => {
     const inputPath = '/path/to/dir';
-    const expectedResultDir = path.join(inputPath, RESULT_DIR);
+    const expectedResultDir = path.join(inputPath, '../', RESULT_DIR);
     const createdDir = await createResultDirectory(inputPath);
     expect(createdDir).toMatch(expectedResultDir);
   });
