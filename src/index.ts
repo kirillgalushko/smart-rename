@@ -6,7 +6,7 @@ import {
   defaultFormatCounter,
   FormatCounterFn,
   generateUniqueName,
-} from 'src/generateUniqueName';
+} from './generateUniqueName';
 
 export const OUTPUT_DIR_NAME = 'temp_rename_result';
 
