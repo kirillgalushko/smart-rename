@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterAll } from 'vitest';
 import fs from 'fs-extra';
-import path, { basename } from 'path';
+import path from 'path';
 import { smartRename } from '../../src/index';
 
 const TEST_RESULT_DIR_NAME = 'test_result';
@@ -18,6 +18,21 @@ const patternsToRemove = [
   /^-|-$/g,
   /audioblocks-/g,
 ];
+
+const tree = async (dirPath: string): Promise<string[]> => {
+  let files: string[] = [];
+  const items = await fs.readdir(dirPath, { withFileTypes: true });
+  for (const item of items) {
+    const fullPath = path.join(dirPath, item.name);
+    if (item.isDirectory()) {
+      const subdirFiles = await tree(fullPath);
+      files = files.concat(subdirFiles);
+    } else if (item.isFile()) {
+      files.push(path.relative(__dirname, fullPath));
+    }
+  }
+  return files;
+};
 
 describe('e2e', () => {
   const mocksDir = path.resolve(__dirname, 'mocks');
@@ -39,7 +54,7 @@ describe('e2e', () => {
       patternsToRemove,
       removeSpaces: true,
     });
-    const resultFiles = await fs.readdir(testResultDir);
+    const resultFiles = await tree(testResultDir);
     expect(resultFiles).toMatchSnapshot();
   });
 
@@ -51,7 +66,7 @@ describe('e2e', () => {
         return prefix + filename + postfix;
       },
     });
-    const resultFiles = await fs.readdir(testResultDir);
+    const resultFiles = await tree(testResultDir);
     expect(resultFiles).toMatchSnapshot();
   });
 
@@ -65,7 +80,7 @@ describe('e2e', () => {
         return prefix + filename + postfix;
       },
     });
-    const resultFiles = await fs.readdir(testResultDir);
+    const resultFiles = await tree(testResultDir);
     expect(resultFiles).toMatchSnapshot();
   });
 
@@ -77,7 +92,7 @@ describe('e2e', () => {
         return `${name}__${counter}`;
       },
     });
-    const resultFiles = await fs.readdir(testResultDir);
+    const resultFiles = await tree(testResultDir);
     expect(resultFiles).toMatchSnapshot();
   });
 
@@ -90,7 +105,7 @@ describe('e2e', () => {
     await run();
     await run();
     await run();
-    const resultFiles = await fs.readdir(testResultDir);
+    const resultFiles = await tree(testResultDir);
     expect(resultFiles).toMatchSnapshot();
   });
 });

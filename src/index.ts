@@ -124,13 +124,29 @@ export const copyRenamedFilesToOutputDirectory = async (
 
 export const moveRenameResultToInputDirectory = async (
   inputPath: string,
-  outputDirPath: string
+  tempDirPath: string
 ) => {
   try {
     log.info(`Cleaning input path: ${inputPath}`);
-    await fs.remove(inputPath);
-    log.info(`Rename result directory ${outputDirPath} to ${inputPath}`);
-    await fs.rename(outputDirPath, inputPath);
+    const items = await fs.readdir(inputPath, { withFileTypes: true });
+    const filesToRemove = items.filter(item => item.isFile()).map(item => path.join(inputPath, item.name));
+    for (const file of filesToRemove) {
+      log.info(`Removing file: ${file}`);
+      await fs.remove(file);
+    }
+
+    const filesInTempDir = await fs.readdir(tempDirPath, { withFileTypes: true });
+    for (const file of filesInTempDir) {
+      if (file.isFile()) {
+        const oldPath = path.join(tempDirPath, file.name);
+        const newPath = path.join(inputPath, file.name);
+        log.info(`Moving file from ${oldPath} to ${newPath}`);
+        await fs.move(oldPath, newPath);
+      }
+    }
+    log.info('Remove temp directory:', tempDirPath)
+    await fs.remove(tempDirPath)
+    log.info(`Renamed files moved to input directory: ${inputPath}`);
   } catch (error) {
     log.error('Moving results to input directory failed:', error);
     throw error;
@@ -145,39 +161,52 @@ export interface SmartRenameOptions extends TransformOptions {
   transform?: TransformFn;
 }
 
-export const smartRename = async (
-  inputPath: string,
-  options: SmartRenameOptions
-) => {
+const processDirectory = async (inputPath: string, options: SmartRenameOptions) => {
   const {
     outputPath,
     formatCounter,
     transform: customTransform,
     ...transformOptions
   } = options;
-  log.info(`Starting the renaming process for inputPath: ${inputPath}`);
 
-  try {
-    const outputDirPath = await createOutputDirectory(
-      inputPath,
-      options.outputPath
-    );
-    const filesInDirectory = await getFilesInDirectory(inputPath);
-    const transformFilenames = await getRenamedFilesMap(
-      filesInDirectory,
-      (fileName) => {
-        let transformResult = transform(fileName, transformOptions);
-        if (customTransform) {
-          transformResult = customTransform(transformResult);
-        }
-        return transformResult;
+  const outputDirPath = await createOutputDirectory(
+    inputPath,
+    options.outputPath
+  );
+  const filesInDirectory = await getFilesInDirectory(inputPath);
+  const transformFilenames = await getRenamedFilesMap(
+    filesInDirectory,
+    (fileName) => {
+      let transformResult = transform(fileName, transformOptions);
+      if (customTransform) {
+        transformResult = customTransform(transformResult);
       }
-    );
-    ensureUniqueFilenamesMap(transformFilenames, formatCounter);
-    await copyRenamedFilesToOutputDirectory(transformFilenames, outputDirPath);
-    if (!options.outputPath) {
-      await moveRenameResultToInputDirectory(inputPath, outputDirPath);
+      return transformResult;
     }
+  );
+  ensureUniqueFilenamesMap(transformFilenames, formatCounter);
+  await copyRenamedFilesToOutputDirectory(transformFilenames, outputDirPath);
+  if (!options.outputPath) {
+    await moveRenameResultToInputDirectory(inputPath, outputDirPath);
+  }
+}
+
+const renameFilesInDirectory = async (inputPath: string, options: SmartRenameOptions) => {
+  const directories = await fs.readdir(inputPath, { withFileTypes: true });
+  const subDirs = directories.filter((item) => item.isDirectory()).map((item) => path.join(inputPath, item.name));
+  for (const subDir of subDirs) {
+    await renameFilesInDirectory(subDir, options);
+  }
+  await processDirectory(inputPath, options);
+}
+
+export const smartRename = async (
+  inputPath: string,
+  options: SmartRenameOptions
+) => {
+  log.info(`Starting the renaming process for inputPath: ${inputPath}`);
+  try {
+    await renameFilesInDirectory(inputPath, options);
     log.info('Renaming process completed successfully');
   } catch (error) {
     log.error('Renaming process failed', error);
