@@ -24,6 +24,9 @@ async function buildJavaScript() {
     minify: false,
     logLevel: 'info',
     external: ['*.test.ts', '*/tests'],
+    banner: {
+      js: "import { createRequire } from 'module'; const require = createRequire(import.meta.url);"
+    },
   });
   console.log('JavaScript build completed.');
 }
